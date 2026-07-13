@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>優雅日常 ‧ Body Recovery Journal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入我們獨立的樣式檔 -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- iOS PWA 專屬設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+</head>
+<body class="satin-bg min-h-screen pb-16 antialiased">
+
+    <div class="max-w-md mx-auto p-5 space-y-6">
+        
+        <!-- ① 首頁療癒標頭 -->
+        <header class="text-center my-4">
+            <h1 class="text-3xl font-light tracking-widest heading-pink">優雅日常 ✨</h1>
+            <p class="text-sm mt-2 opacity-80 tracking-wide font-medium">傾聽身體，而不是責怪體重。</p>
+            <p class="text-xs mt-1 opacity-50 tracking-wider">今天的數字，只是身體昨天努力的結果。</p>
+        </header>
+
+        <!-- ⑧ 每日一句溫暖微光小卡 -->
+        <div class="satin-card rounded-2xl p-4 text-center space-y-1 bg-white/40">
+            <div id="quoteIcon" class="text-lg">🌷</div>
+            <p id="quoteText" class="text-xs leading-relaxed tracking-wide italic opacity-80 font-medium">
+                載入今日溫柔密語中...
+            </p>
+        </div>
+
+        <!-- ② 圖表可視化面板 -->
+        <div class="satin-card rounded-3xl p-5 space-y-4">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold opacity-50 tracking-wider">📈 身體恢復趨勢</span>
+                <div class="flex space-x-1 text-[11px]">
+                    <button onclick="changeRange(7)" id="btn-7" class="range-btn active px-2.5 py-1 rounded-lg border transition cursor-pointer">7天</button>
+                    <button onclick="changeRange(30)" id="btn-30" class="range-btn px-2.5 py-1 rounded-lg border transition cursor-pointer">30天</button>
+                    <button onclick="changeRange(0)" id="btn-0" class="range-btn px-2.5 py-1 rounded-lg border transition cursor-pointer">全部</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="w-full h-40">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+            <div class="border-t border-stone-200/40 my-1"></div>
+            <div>
+                <h3 class="text-[11px] font-medium tracking-wider opacity-50 mb-2">✨ 隔夜恢復水分排空趨勢</h3>
+                <div class="w-full h-28">
+                    <canvas id="diffChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ② 🌿 最近七天摘要小卡 (Apple Health 風格) -->
+        <div class="satin-card rounded-2xl p-4 grid grid-cols-2 gap-4 divide-x divide-stone-200/50">
+            <div class="text-center space-y-1">
+                <span class="block text-[11px] opacity-50 tracking-wider">🌿 最近 7 天平均排空</span>
+                <span id="avgDiffText" class="text-2xl font-light heading-pink block">-- kg</span>
+                <div id="avgStars" class="text-xs text-amber-400/80">☆☆☆☆☆</div>
+            </div>
+            <div class="text-center space-y-1 flex flex-col justify-center items-center">
+                <span class="block text-[11px] opacity-50 tracking-wider">週排空對比</span>
+                <span id="compareText" class="text-sm font-medium text-stone-500">持平或數據不足</span>
+            </div>
+        </div>
+
+        <!-- ⑥ 每週總結（星期日自動觸發或點擊查看） -->
+        <div id="weeklyReportCard" class="satin-card rounded-3xl p-5 border-2 border-dashed border-pink-200/60 hidden bg-gradient-to-br from-white/90 to-pink-50/20">
+            <!-- 由 JS 判斷星期日或有數據時自動生成注入 -->
+        </div>
+
+        <!-- ③ & ④ 核心數據輸入表單 -->
+        <div class="satin-card rounded-3xl p-6">
+            <h2 class="text-base font-medium mb-4 tracking-wide heading-pink">✍️ 紀錄今日身體手札</h2>
+            
+            <form id="logForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs opacity-50 mb-1 tracking-wider">選擇日期</label>
+                    <input type="date" id="dateInput" class="morandi-input w-full px-3 py-2 border border-stone-200 rounded-xl bg-white/60 text-sm" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs opacity-50 mb-1 tracking-wider">昨晚體重 (kg)</label>
+                        <input type="number" id="bedtimeWeight" step="0.01" placeholder="0.00" class="morandi-input w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white/60 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs opacity-50 mb-1 tracking-wider">今早體重 (kg)</label>
+                        <input type="number" id="morningWeight" step="0.01" placeholder="0.00" class="morandi-input w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white/60 text-sm">
+                    </div>
+                </div>
+
+                <!-- ③ 飲食分餐文字框 -->
+                <div class="space-y-2 border-t border-b border-stone-200/30 py-3 my-2">
+                    <span class="block text-xs font-semibold opacity-50 tracking-wider mb-1">🥣 當日飲食隨筆</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <input type="text" id="mealBreakfast" placeholder="🥣 早餐內容..." class="morandi-input w-full px-2.5 py-2 border border-stone-200 rounded-xl bg-white/50 text-xs">
+                        </div>
+                        <div>
+                            <input type="text" id="mealLunch" placeholder="🍱 午餐內容..." class="morandi-input w-full px-2.5 py-2 border border-stone-200 rounded-xl bg-white/50 text-xs">
+                        </div>
+                        <div>
+                            <input type="text" id="mealDinner" placeholder="🍝 晚餐內容..." class="morandi-input w-full px-2.5 py-2 border border-stone-200 rounded-xl bg-white/50 text-xs">
+                        </div>
+                        <div>
+                            <input type="text" id="mealSnack" placeholder="🍪 點心/飲料..." class="morandi-input w-full px-2.5 py-2 border border-stone-200 rounded-xl bg-white/50 text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ④ 心情單選按鈕 (無須打字) -->
+                <div>
+                    <label class="block text-xs opacity-50 mb-1.5 tracking-wider">😊 今天的心情感受</label>
+                    <div class="grid grid-cols-3 gap-1.5 text-xs" id="moodGroup">
+                        <button type="button" data-mood="很開心" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">開心 😊</button>
+                        <button type="button" data-mood="平靜" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">平靜 🤍</button>
+                        <button type="button" data-mood="普通" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">普通 ⏳</button>
+                        <button type="button" data-mood="壓力" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">壓力 🌊</button>
+                        <button type="button" data-mood="焦慮" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">焦慮 🌧️</button>
+                        <button type="button" data-mood="暴食" class="mood-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">暴食 🍰</button>
+                    </div>
+                </div>
+
+                <!-- ④ 身體狀態複選方塊 (無須打字) -->
+                <div>
+                    <label class="block text-xs opacity-50 mb-1.5 tracking-wider">🧘 今天的身體生理狀態 (可多選)</label>
+                    <div class="grid grid-cols-3 gap-1.5 text-xs" id="statusGroup">
+                        <button type="button" data-status="水腫" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">💧 水腫</button>
+                        <button type="button" data-status="生理期" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">🩸 生理期</button>
+                        <button type="button" data-status="熬夜" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">🌙 熬夜</button>
+                        <button type="button" data-status="聚餐" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">🥂 聚餐</button>
+                        <button type="button" data-status="外食" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">🥡 外食</button>
+                        <button type="button" data-status="運動" class="status-btn border border-stone-200 py-1.5 rounded-xl transition bg-white/40">🏃 運動</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn w-full text-white font-medium py-3 rounded-xl transition tracking-widest shadow-sm cursor-pointer duration-300">
+                    儲存日記並生成恢復報告
+                </button>
+            </form>
+        </div>
+
+        <!-- ⑤ & ⑦ 歷史紀錄與 Apple Health 身體報告一覽 -->
+        <div class="space-y-3">
+            <h2 class="text-xs font-medium tracking-wider opacity-50 px-1">📋 歷史身體恢復日誌</h2>
+            <div id="historyList" class="space-y-4">
+                <!-- 由 JS 自動生成 -->
+            </div>
+        </div>
+
+        <!-- 🔐 備份與資料管理安全區塊 -->
+        <div class="satin-card rounded-2xl p-4 flex justify-between items-center bg-white/40">
+            <span class="text-xs font-medium opacity-50">🔐 數據防丟與還原機制</span>
+            <div class="flex space-x-2">
+                <button onclick="exportData()" class="text-xs px-3 py-1.5 rounded-xl border border-pink-300 heading-pink bg-white/60 font-medium transition cursor-pointer">
+                    📥 備份匯出
+                </button>
+                <button onclick="importData()" class="text-xs px-3 py-1.5 rounded-xl text-stone-500 border border-stone-300 transition cursor-pointer bg-white/60">
+                    📤 匯入還原
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 載入核心控制 JavaScript 腳本 -->
+    <script src="app.js"></script>
+</body>
+</html>

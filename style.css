@@ -1,0 +1,137 @@
+/* ==========================================
+   🌸 優雅日常 V2.0 - 莫蘭迪質感美學樣式檔
+   ========================================== */
+
+/* 全域襯底：溫潤絲綢膚粉色，維持無焦慮的舒適氛圍 */
+.satin-bg {
+    background: linear-gradient(135deg, #F9F5F1 0%, #F1E9E3 100%);
+    color: #4A443F;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 核心標題莫蘭迪粉 */
+.heading-pink {
+    color: #D49B9B;
+}
+
+/* 霧面絲絨卡片：透光、輕盈、精緻 */
+.satin-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 32px 0 rgba(197, 186, 178, 0.15);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 圓潤輸入框設定 */
+.morandi-input {
+    outline: none;
+    color: #4A443F;
+    transition: all 0.3s ease;
+}
+.morandi-input:focus {
+    border-color: #E5B3B3;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 3px rgba(229, 179, 179, 0.2);
+}
+
+/* 📅 天數切換按鈕樣式 */
+.range-btn {
+    border-color: rgba(212, 187, 171, 0.3);
+    color: #7A726A;
+    background: rgba(255, 255, 255, 0.3);
+}
+.range-btn.active {
+    background: #E5B3B3;
+    color: white;
+    border-color: #E5B3B3;
+    box-shadow: 0 4px 12px rgba(229, 179, 179, 0.3);
+}
+
+/* 😊 心情單選按鈕動態效應 */
+.mood-btn {
+    color: #6B6259;
+    border-color: rgba(212, 187, 171, 0.4);
+    cursor: pointer;
+}
+.mood-btn.selected {
+    background: #E5B3B3;
+    color: white;
+    border-color: #E5B3B3;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(229, 179, 179, 0.25);
+}
+
+/* 🧘 身體生理狀態複選方塊動態效應 */
+.status-btn {
+    color: #6B6259;
+    border-color: rgba(212, 187, 171, 0.4);
+    cursor: pointer;
+}
+.status-btn.selected {
+    background: #9CAF9C; /* 莫蘭迪艾綠 */
+    color: white;
+    border-color: #9CAF9C;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(156, 175, 156, 0.25);
+}
+
+/* 儲存按鈕：高質感漸層 */
+.submit-btn {
+    background: linear-gradient(135deg, #E5B3B3 0%, #D49B9B 100%);
+    box-shadow: 0 4px 15px rgba(212, 155, 155, 0.3);
+}
+.submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(212, 155, 155, 0.4);
+}
+.submit-btn:active {
+    transform: translateY(1px);
+}
+
+/* 🏷️ ⑦ Apple Health 風格恢復標籤庫 */
+.badge-recovery-good {
+    background-color: rgba(156, 175, 156, 0.15);
+    color: #5D725D;
+    border: 1px solid rgba(156, 175, 156, 0.3);
+}
+.badge-recovery-stable {
+    background-color: rgba(188, 196, 171, 0.18);
+    color: #6E7853;
+    border: 1px solid rgba(188, 196, 171, 0.3);
+}
+.badge-recovery-neutral {
+    background-color: rgba(212, 203, 191, 0.2);
+    color: #70665A;
+    border: 1px solid rgba(212, 203, 191, 0.3);
+}
+.badge-recovery-retention {
+    background-color: rgba(212, 187, 187, 0.18);
+    color: #945B5B;
+    border: 1px solid rgba(212, 187, 187, 0.3);
+}
+.badge-recovery-rest {
+    background-color: rgba(179, 192, 212, 0.18);
+    color: #516585;
+    border: 1px solid rgba(179, 192, 212, 0.3);
+}
+
+/* 為了消除密碼箱原生 input 在 iOS 上的邊框突兀感 */
+input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* 自訂捲軸讓歷史清單優雅滾動 */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(212, 187, 171, 0.4);
+    border-radius: 10px;
+}
