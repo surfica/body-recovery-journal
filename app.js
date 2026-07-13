@@ -496,3 +496,45 @@ function importData() {
     }
     input.click();
 }
+// 11. 編輯舊紀錄功能
+function editLog(index) {
+    const item = appData[index];
+    if (!item) return;
+
+    // 還原日期與體重
+    document.getElementById('dateInput').value = item.date;
+    document.getElementById('bedtimeWeight').value = item.bedtime || '';
+    document.getElementById('morningWeight').value = item.morning || '';
+
+    // 還原分餐內容
+    const m = item.meals || {};
+    document.getElementById('mealBreakfast').value = m.breakfast || '';
+    document.getElementById('mealLunch').value = m.lunch || '';
+    document.getElementById('mealDinner').value = m.dinner || '';
+    document.getElementById('mealSnack').value = m.snack || '';
+
+    // 還原心情單選狀態
+    document.querySelectorAll('#moodGroup .mood-btn').forEach(btn => {
+        const mood = btn.getAttribute('data-mood');
+        if (mood === item.mood) {
+            btn.classList.add('selected');
+            selectedMood = mood;
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+
+    // 還原身體狀態複選狀態
+    selectedStatuses = item.statuses ? [...item.statuses] : [];
+    document.querySelectorAll('#statusGroup .status-btn').forEach(btn => {
+        const status = btn.getAttribute('data-status');
+        if (selectedStatuses.includes(status)) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+
+    // 捲動到最上方的輸入區
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
