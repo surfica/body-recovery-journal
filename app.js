@@ -334,8 +334,10 @@ function renderHistoryList() {
                     <span class="text-xs font-bold text-stone-500">${item.date}</span>
                     <span class="text-[10px] px-2.5 py-0.5 rounded-full font-medium ${report.badgeClass}">${report.badgeText}</span>
                 </div>
+               <div class="flex space-x-2">
+                <button onclick="editLog(${originalIndex})" class="text-[11px] opacity-40 hover:opacity-100 heading-pink cursor-pointer">編輯 ✏️</button>
                 <button onclick="deleteLog(${originalIndex})" class="text-[11px] opacity-30 hover:opacity-100 hover:text-red-500 cursor-pointer">隱藏</button>
-            </div>
+               </div>
             
             <div class="text-xs space-y-1.5 opacity-90 border-b border-stone-200/30 pb-2.5 leading-relaxed">
                 <p><strong class="opacity-60 font-medium">⚖️ 體重：</strong> 昨晚 ${item.bedtime || '--'}kg ➔ 今早 ${item.morning || '--'}kg <span class="text-[11px] font-medium text-stone-400">${diffText}</span></p>
