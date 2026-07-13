@@ -295,7 +295,7 @@ function checkWeeklyReport() {
     }
 }
 
-// 8. 📜 渲染歷史紀錄清單 (已完全修正為高質感垂直排列排版，並修正因果錯位 bug)
+// 8. 📜 渲染歷史紀錄清單 (精準修正：沒填心情與狀態就不顯示、排空高標微調、負號徹底移除)
 function renderHistoryList() {
     const container = document.getElementById('historyList');
     container.innerHTML = '';
@@ -309,13 +309,13 @@ function renderHistoryList() {
     [...appData].reverse().forEach((item, revIndex) => {
         const originalIndex = appData.length - 1 - revIndex;
         
-        // 【核心修正】直接計算當天輸入的昨晚到今早的排空量
+        // 1. 精準計算當夜排空量 (昨晚 - 今早)
         let currentDiff = null;
-        if (item.bedtime !== null && item.morning !== null) {
+        if (item.bedtime !== null && item.bedtime !== undefined && item.morning !== null && item.morning !== undefined) {
             currentDiff = parseFloat((item.bedtime - item.morning).toFixed(2));
         }
 
-        // 重新設計精準的當夜恢復評估
+        // 2. 初始狀態設定
         let report = {
             badgeClass: "badge-recovery-neutral",
             badgeText: "🤍 數據累積中",
@@ -325,22 +325,28 @@ function renderHistoryList() {
 
         const m = item.meals || {};
         const allDietText = `${m.breakfast} ${m.lunch} ${m.dinner} ${m.snack} ${item.statuses?.join(' ') || ''}`.toLowerCase();
+        
+        const goodFoods = [];
         const badFoods = [];
-        const badKeywords = { '火鍋': '火鍋', '泡麵': '泡麵', '甜': '甜點', '蛋糕': '蛋糕', '炸': '炸物', '鹽酥雞': '鹽酥雞', '醬': '沾醬', '燒肉': '燒肉', '飲料': '甜飲', '奶茶': '奶茶', '披薩': '披薩', '熬夜': '熬夜' };
+        const goodKeywords = { '水': '補水', '清淡': '清淡', '原型': '原型', '菜': '蔬菜', '魚': '優質魚類', '雞': '低脂雞肉', '蛋': '蛋類', '芭樂': '芭樂', '番茄': '番茄', '地瓜': '地瓜' };
+        const badKeywords = { '火鍋': '火鍋', '泡麵': '泡麵', '甜': '甜點', '蛋糕': '蛋糕', '炸': '炸物', '鹽酥雞': '鹽酥雞', '醬': '沾醬', '飲料': '甜飲', '奶茶': '奶茶', '熬夜': '熬夜' };
+        
+        for (let key in goodKeywords) { if (allDietText.includes(key)) goodFoods.push(goodKeywords[key]); }
         for (let key in badKeywords) { if (allDietText.includes(key)) badFoods.push(badKeywords[key]); }
 
+        // 3. 核心邏輯判斷 (溫柔放寬：排空 >= 0.5kg 即為恢復很好)
         if (currentDiff !== null) {
-            if (currentDiff >= 0.6) {
+            if (currentDiff >= 0.5) {
                 report.badgeClass = "badge-recovery-good";
                 report.badgeText = "🌸 恢復很好";
                 report.stars = "★★★★★";
                 report.advice = `昨夜身體得到了極佳的修復，順暢排空了 ${currentDiff}kg！這樣的代謝節奏對身體十分友善，不需要刻意少吃，穩定最重要。`;
-            } else if (currentDiff >= 0.4 && currentDiff < 0.6) {
+            } else if (currentDiff >= 0.25 && currentDiff < 0.5) {
                 report.badgeClass = "badge-recovery-stable";
                 report.badgeText = "🌿 恢復穩定";
                 report.stars = "★★★★☆";
-                report.advice = `過夜排空達到了平穩的 ${currentDiff}kg，代表身體在正常的節奏中代謝，請繼續保持。`;
-            } else if (currentDiff >= 0 && currentDiff < 0.4) {
+                report.advice = `過夜排空達到了平穩的 ${currentDiff}kg，這是非常棒且健康的基礎代謝表現，代表身體正在按部就班地穩定運作，請繼續保持。`;
+            } else if (currentDiff >= 0 && currentDiff < 0.25) {
                 report.badgeClass = "badge-recovery-retention";
                 report.badgeText = "🌧 水分滯留";
                 report.stars = "★★☆☆☆";
@@ -349,28 +355,51 @@ function renderHistoryList() {
                 report.badgeClass = "badge-recovery-rest";
                 report.badgeText = "💛 身體需要休息";
                 report.stars = "★☆☆☆☆";
-                report.advice = `數據出現了微幅回升（排空為 ${currentDiff}kg）。昨天的生活節奏或疲勞可能讓身體感到了一點壓力。請不要責怪體重，今晚試著早睡半小時，給予身體自我修復的時間。`;
+                report.advice = `數據出現了微幅回升（今早多了一點點）。昨天的生活節奏或疲勞可能讓身體感到了一點壓力。請不要責怪體重，今晚試著早睡半小時，給予身體自我修復的時間。`;
             }
         } else {
-            if (badFoods.length > 0) { report.advice = `今日飲食中包含了【${badFoods.join('、')}】。別擔心，等補齊體重數據後，系統將為您揭曉它的過夜觀察報告！`; }
+            report.badgeClass = "badge-recovery-neutral";
+            report.badgeText = "🤍 數據不完整";
+            report.stars = "★★★☆☆";
+            report.advice = `補齊昨晚與今早的體重數值，系統就能幫妳算出神奇的過夜恢復排空量囉！`;
         }
 
+        // 4. 飲食四行垂直排版處理
+        const foodRows = [
+            m.breakfast ? `早：${m.breakfast}` : '',
+            m.lunch ? `午：${m.lunch}` : '',
+            m.dinner ? `晚：${m.dinner}` : '',
+            m.snack ? `零食：${m.snack}` : ''
+        ].filter(Boolean).join('<br>');
+        
+        const finalFoodDisplay = foodRows || '未記錄飲食內容';
+        
+        // 5. 排空顯示文字處理 (徹底移除負號)
+        let diffDisplay = '';
+        if (currentDiff !== null) {
+            if (currentDiff >= 0) {
+                diffDisplay = ` (當夜排空: ${currentDiff.toFixed(2)}kg)`;
+            } else {
+                diffDisplay = ` (微幅回升: ${Math.abs(currentDiff).toFixed(2)}kg)`;
+            }
+        }
+
+        // 6. 🧠 感受備忘動態顯示邏輯 (沒填就不產生 HTML)
+        let moodDisplayHtml = '';
+        const hasMood = item.mood && item.mood.trim() !== "";
+        const hasStatus = item.statuses && item.statuses.length > 0;
+        
+        if (hasMood || hasStatus) {
+            let moodText = hasMood ? `心情「${item.mood}」` : '';
+            let statusText = hasStatus ? `${hasMood ? ' ‧ ' : ''}狀態：${item.statuses.join('、')}` : '';
+            moodDisplayHtml = `<p>💭 <b>感受備忘：</b> <span class="text-stone-500">${moodText}${statusText}</span></p>`;
+        }
+
+        // 7. 渲染 HTML 卡片
         const card = document.createElement('div');
         card.className = "satin-card p-5 rounded-2xl relative transition duration-300 border-l-4 mb-4";
         card.style.borderLeftColor = report.badgeText.includes('很好') || report.badgeText.includes('穩定') ? '#9CAF9C' : '#D49B9B';
         
-        const foodDisplay = [
-             m.breakfast ? `早：${m.breakfast}` : '',
-             m.lunch ? `午：${m.lunch}` : '',
-             m.dinner ? `晚：${m.dinner}` : '',
-             m.snack ? `零食：${m.snack}` : ''
-         ].filter(Boolean).join('<br>'); // 改用 <br> 換行，分四行呈現
-         
-         // 如果完全沒記錄，就顯示提示文字
-         const finalFoodDisplay = foodDisplay || '未記錄飲食內容';
-
-        const diffDisplay = currentDiff !== null ? ` (當夜排空: ${currentDiff > 0 ? '-' : '+'}${Math.abs(currentDiff).toFixed(2)}kg)` : '';
-
         card.innerHTML = `
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center space-x-2">
@@ -385,11 +414,13 @@ function renderHistoryList() {
             
             <div class="text-xs space-y-2 opacity-95 border-b border-stone-200/40 pb-3 leading-relaxed text-stone-600">
                 <p>⚖️ <b>體重數據：</b> 昨晚 ${item.bedtime || '--'} kg ➔ 今早 ${item.morning || '--'} kg <span class="text-stone-400 font-medium">${diffDisplay}</span></p>
+                
                 <div class="flex items-start">
-                   <span class="shrink-0">🔍 <b>當日飲食：</b></span>
-                   <span class="text-stone-500 ml-1 leading-relaxed">${finalFoodDisplay}</span>
+                    <span class="shrink-0">🔍 <b>當日飲食：</b></span>
+                    <span class="text-stone-500 ml-1 leading-relaxed">${finalFoodDisplay}</span>
                 </div>
-                <p>💭 <b>感受備忘：</b> 心情「${item.mood || '平靜'}」${item.statuses?.length > 0 ? ' ‧ 狀態：' + item.statuses.join('、') : ''}</p>
+                
+                ${moodDisplayHtml} <!-- 動態插入：有寫才顯示，沒寫就全空 -->
             </div>
 
             <div class="mt-3 text-xs p-3 rounded-xl bg-stone-50/70 text-stone-600 space-y-1.5 border border-stone-100">
