@@ -360,11 +360,14 @@ function renderHistoryList() {
         card.style.borderLeftColor = report.badgeText.includes('很好') || report.badgeText.includes('穩定') ? '#9CAF9C' : '#D49B9B';
         
         const foodDisplay = [
-            m.breakfast ? `早 ${m.breakfast}` : '',
-            m.lunch ? `午 ${m.lunch}` : '',
-            m.dinner ? `晚 ${m.dinner}` : '',
-            m.snack ? `🍪 ${m.snack}` : ''
-        ].filter(Boolean).join(' ‧ ') || '未記錄飲食內容';
+             m.breakfast ? `早：${m.breakfast}` : '',
+             m.lunch ? `午：${m.lunch}` : '',
+             m.dinner ? `晚：${m.dinner}` : '',
+             m.snack ? `零食：${m.snack}` : ''
+         ].filter(Boolean).join('<br>'); // 改用 <br> 換行，分四行呈現
+         
+         // 如果完全沒記錄，就顯示提示文字
+         const finalFoodDisplay = foodDisplay || '未記錄飲食內容';
 
         const diffDisplay = currentDiff !== null ? ` (當夜排空: ${currentDiff > 0 ? '-' : '+'}${Math.abs(currentDiff).toFixed(2)}kg)` : '';
 
@@ -382,7 +385,10 @@ function renderHistoryList() {
             
             <div class="text-xs space-y-2 opacity-95 border-b border-stone-200/40 pb-3 leading-relaxed text-stone-600">
                 <p>⚖️ <b>體重數據：</b> 昨晚 ${item.bedtime || '--'} kg ➔ 今早 ${item.morning || '--'} kg <span class="text-stone-400 font-medium">${diffDisplay}</span></p>
-                <p>🔍 <b>當日飲食：</b> <span class="text-stone-500">${foodDisplay}</span></p>
+                <div class="flex items-start">
+                   <span class="shrink-0">🔍 <b>當日飲食：</b></span>
+                   <span class="text-stone-500 ml-1 leading-relaxed">${finalFoodDisplay}</span>
+                </div>
                 <p>💭 <b>感受備忘：</b> 心情「${item.mood || '平靜'}」${item.statuses?.length > 0 ? ' ‧ 狀態：' + item.statuses.join('、') : ''}</p>
             </div>
 
