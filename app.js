@@ -295,7 +295,7 @@ function checkWeeklyReport() {
     }
 }
 
-// 8. 📜 渲染歷史紀錄清單 (已完全修正為高質感垂直排列排版)
+// 8. 📜 渲染歷史紀錄清單 (已完全修正為高質感垂直排列排版，並修正因果錯位 bug)
 function renderHistoryList() {
     const container = document.getElementById('historyList');
     container.innerHTML = '';
@@ -308,48 +308,84 @@ function renderHistoryList() {
     // 由新到舊呈現
     [...appData].reverse().forEach((item, revIndex) => {
         const originalIndex = appData.length - 1 - revIndex;
-        const nextItem = appData[originalIndex + 1] || null; // 抓取生理時鐘的下一天
+        
+        // 【核心修正】直接計算當天輸入的昨晚到今早的排空量
+        let currentDiff = null;
+        if (item.bedtime !== null && item.morning !== null) {
+            currentDiff = parseFloat((item.bedtime - item.morning).toFixed(2));
+        }
 
-        const singleDiff = (item.bedtime !== null && item.morning !== null) ? (item.bedtime - item.morning) : null;
-        const diffText = singleDiff !== null ? ` (當夜排空: -${singleDiff.toFixed(2)}kg)` : '';
+        // 重新設計精準的當夜恢復評估
+        let report = {
+            badgeClass: "badge-recovery-neutral",
+            badgeText: "🤍 數據累積中",
+            stars: "★★★☆☆",
+            advice: "✍️ 紀錄已安全儲存。補齊昨晚與今早的體重，系統就會為您生成過夜身體恢復報告喔！"
+        };
 
-        // 取得 Apple Health 風格分析內容
-        const report = generateInsight(item, nextItem);
+        const m = item.meals || {};
+        const allDietText = `${m.breakfast} ${m.lunch} ${m.dinner} ${m.snack} ${item.statuses?.join(' ') || ''}`.toLowerCase();
+        const badFoods = [];
+        const badKeywords = { '火鍋': '火鍋', '泡麵': '泡麵', '甜': '甜點', '蛋糕': '蛋糕', '炸': '炸物', '鹽酥雞': '鹽酥雞', '醬': '沾醬', '燒肉': '燒肉', '飲料': '甜飲', '奶茶': '奶茶', '披薩': '披薩', '熬夜': '熬夜' };
+        for (let key in badKeywords) { if (allDietText.includes(key)) badFoods.push(badKeywords[key]); }
+
+        if (currentDiff !== null) {
+            if (currentDiff >= 0.6) {
+                report.badgeClass = "badge-recovery-good";
+                report.badgeText = "🌸 恢復很好";
+                report.stars = "★★★★★";
+                report.advice = `昨夜身體得到了極佳的修復，順暢排空了 ${currentDiff}kg！這樣的代謝節奏對身體十分友善，不需要刻意少吃，穩定最重要。`;
+            } else if (currentDiff >= 0.4 && currentDiff < 0.6) {
+                report.badgeClass = "badge-recovery-stable";
+                report.badgeText = "🌿 恢復穩定";
+                report.stars = "★★★★☆";
+                report.advice = `過夜排空達到了平穩的 ${currentDiff}kg，代表身體在正常的節奏中代謝，請繼續保持。`;
+            } else if (currentDiff >= 0 && currentDiff < 0.4) {
+                report.badgeClass = "badge-recovery-retention";
+                report.badgeText = "🌧 水分滯留";
+                report.stars = "★★☆☆☆";
+                report.advice = `昨夜的排空較少（僅 ${currentDiff}kg），身體可能保留了較多水分。這完全不代表變胖，或許是飲食中的鈉含量或精緻糖悄悄鎖住了水分。建議今天多喝水、多吃點高鉀蔬菜（如菠菜、香蕉）。`;
+            } else {
+                report.badgeClass = "badge-recovery-rest";
+                report.badgeText = "💛 身體需要休息";
+                report.stars = "★☆☆☆☆";
+                report.advice = `數據出現了微幅回升（排空為 ${currentDiff}kg）。昨天的生活節奏或疲勞可能讓身體感到了一點壓力。請不要責怪體重，今晚試著早睡半小時，給予身體自我修復的時間。`;
+            }
+        } else {
+            if (badFoods.length > 0) { report.advice = `今日飲食中包含了【${badFoods.join('、')}】。別擔心，等補齊體重數據後，系統將為您揭曉它的過夜觀察報告！`; }
+        }
 
         const card = document.createElement('div');
         card.className = "satin-card p-5 rounded-2xl relative transition duration-300 border-l-4 mb-4";
         card.style.borderLeftColor = report.badgeText.includes('很好') || report.badgeText.includes('穩定') ? '#9CAF9C' : '#D49B9B';
         
-        const m = item.meals || { breakfast: '', lunch: '', dinner: '', snack: '' };
         const foodDisplay = [
-            m.breakfast ? `🥣 ${m.breakfast}` : '',
-            m.lunch ? `🍱 ${m.lunch}` : '',
-            m.dinner ? `🍝 ${m.dinner}` : '',
+            m.breakfast ? `早 ${m.breakfast}` : '',
+            m.lunch ? `午 ${m.lunch}` : '',
+            m.dinner ? `晚 ${m.dinner}` : '',
             m.snack ? `🍪 ${m.snack}` : ''
         ].filter(Boolean).join(' ‧ ') || '未記錄飲食內容';
 
+        const diffDisplay = currentDiff !== null ? ` (當夜排空: ${currentDiff > 0 ? '-' : '+'}${Math.abs(currentDiff).toFixed(2)}kg)` : '';
+
         card.innerHTML = `
-            <!-- 最上方：日期與恢復標籤 -->
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center space-x-2">
                     <span class="text-sm font-bold text-stone-600">${item.date}</span>
                     <span class="text-[11px] px-2.5 py-0.5 rounded-full font-medium ${report.badgeClass}">${report.badgeText}</span>
                 </div>
-                <!-- 動作按鈕移到最右側，拉開距離 -->
                 <div class="flex space-x-3 bg-white/40 px-2 py-0.5 rounded-lg border border-stone-200/30">
                     <button onclick="editLog(${originalIndex})" class="text-[11px] font-medium heading-pink cursor-pointer">編輯 ✏️</button>
                     <button onclick="deleteLog(${originalIndex})" class="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer">隱藏</button>
                 </div>
             </div>
             
-            <!-- 中間區塊：純垂直排列的身體數據 -->
             <div class="text-xs space-y-2 opacity-95 border-b border-stone-200/40 pb-3 leading-relaxed text-stone-600">
-                <p>⚖️ <b>體重數據：</b> 昨晚 ${item.bedtime || '--'} kg ➔ 今早 ${item.morning || '--'} kg <span class="text-stone-400 font-medium">${diffText}</span></p>
+                <p>⚖️ <b>體重數據：</b> 昨晚 ${item.bedtime || '--'} kg ➔ 今早 ${item.morning || '--'} kg <span class="text-stone-400 font-medium">${diffDisplay}</span></p>
                 <p>🔍 <b>當日飲食：</b> <span class="text-stone-500">${foodDisplay}</span></p>
                 <p>💭 <b>感受備忘：</b> 心情「${item.mood || '平靜'}」${item.statuses?.length > 0 ? ' ‧ 狀態：' + item.statuses.join('、') : ''}</p>
             </div>
 
-            <!-- 最下方：完整的隔夜恢復觀察報告，不再擠在右邊 -->
             <div class="mt-3 text-xs p-3 rounded-xl bg-stone-50/70 text-stone-600 space-y-1.5 border border-stone-100">
                 <div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-stone-400">
                     <span>💡 隔夜恢復觀察報告：</span>
