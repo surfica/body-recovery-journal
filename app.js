@@ -8,7 +8,7 @@ const dailyQuotes = [
     { icon: "🌼", text: "慢慢變瘦的人，不是最努力的人，而是最穩定的人。" },
     { icon: "🌸", text: "今天的數字，只是身體昨天努力的結果，溫柔對待它。" },
     { icon: "🌿", text: "好好吃飯，認真休息，身體自然會給妳最美妙的回應。" },
-    { icon: "🌱", text: "不要因為一天的波動而焦慮，那是水分的探戈，不是脂肪的累積。" },
+    { icon: "🌱", text: "別為一天的波動焦慮，那是水分的探戈，不是脂肪的累積。" },
     { icon: "🍃", text: "穩定就是最好的減脂，聽聽身體的聲音，妳做得很棒。" }
 ];
 
@@ -295,7 +295,7 @@ function checkWeeklyReport() {
     }
 }
 
-// 8. 📜 渲染歷史紀錄清單
+// 8. 📜 渲染歷史紀錄清單 (已完全修正為高質感垂直排列排版)
 function renderHistoryList() {
     const container = document.getElementById('historyList');
     container.innerHTML = '';
@@ -317,7 +317,7 @@ function renderHistoryList() {
         const report = generateInsight(item, nextItem);
 
         const card = document.createElement('div');
-        card.className = "satin-card p-5 rounded-2xl relative transition duration-300 border-l-4";
+        card.className = "satin-card p-5 rounded-2xl relative transition duration-300 border-l-4 mb-4";
         card.style.borderLeftColor = report.badgeText.includes('很好') || report.badgeText.includes('穩定') ? '#9CAF9C' : '#D49B9B';
         
         const m = item.meals || { breakfast: '', lunch: '', dinner: '', snack: '' };
@@ -329,28 +329,33 @@ function renderHistoryList() {
         ].filter(Boolean).join(' ‧ ') || '未記錄飲食內容';
 
         card.innerHTML = `
-            <div class="flex justify-between items-center mb-2.5">
+            <!-- 最上方：日期與恢復標籤 -->
+            <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center space-x-2">
-                    <span class="text-xs font-bold text-stone-500">${item.date}</span>
-                    <span class="text-[10px] px-2.5 py-0.5 rounded-full font-medium ${report.badgeClass}">${report.badgeText}</span>
+                    <span class="text-sm font-bold text-stone-600">${item.date}</span>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full font-medium ${report.badgeClass}">${report.badgeText}</span>
                 </div>
-               <div class="flex space-x-2">
-                <button onclick="editLog(${originalIndex})" class="text-[11px] opacity-40 hover:opacity-100 heading-pink cursor-pointer">編輯 ✏️</button>
-                <button onclick="deleteLog(${originalIndex})" class="text-[11px] opacity-30 hover:opacity-100 hover:text-red-500 cursor-pointer">隱藏</button>
-               </div>
+                <!-- 動作按鈕移到最右側，拉開距離 -->
+                <div class="flex space-x-3 bg-white/40 px-2 py-0.5 rounded-lg border border-stone-200/30">
+                    <button onclick="editLog(${originalIndex})" class="text-[11px] font-medium heading-pink cursor-pointer">編輯 ✏️</button>
+                    <button onclick="deleteLog(${originalIndex})" class="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer">隱藏</button>
+                </div>
+            </div>
             
-            <div class="text-xs space-y-1.5 opacity-90 border-b border-stone-200/30 pb-2.5 leading-relaxed">
-                <p><strong class="opacity-60 font-medium">⚖️ 體重：</strong> 昨晚 ${item.bedtime || '--'}kg ➔ 今早 ${item.morning || '--'}kg <span class="text-[11px] font-medium text-stone-400">${diffText}</span></p>
-                <p><strong class="opacity-60 font-medium">🍽 飲食：</strong> <span class="text-stone-600">${foodDisplay}</span></p>
-                <p><strong class="opacity-60 font-medium">💭 狀態：</strong> <span class="text-stone-500">心情「${item.mood || '平靜'}」${item.statuses?.length > 0 ? ' ‧ 身體標籤：' + item.statuses.join('、') : ''}</span></p>
+            <!-- 中間區塊：純垂直排列的身體數據 -->
+            <div class="text-xs space-y-2 opacity-95 border-b border-stone-200/40 pb-3 leading-relaxed text-stone-600">
+                <p>⚖️ <b>體重數據：</b> 昨晚 ${item.bedtime || '--'} kg ➔ 今早 ${item.morning || '--'} kg <span class="text-stone-400 font-medium">${diffText}</span></p>
+                <p>🔍 <b>當日飲食：</b> <span class="text-stone-500">${foodDisplay}</span></p>
+                <p>💭 <b>感受備忘：</b> 心情「${item.mood || '平靜'}」${item.statuses?.length > 0 ? ' ‧ 狀態：' + item.statuses.join('、') : ''}</p>
             </div>
 
-            <div class="mt-2.5 text-xs p-2.5 rounded-xl bg-stone-50/60 text-stone-600 space-y-1">
-                <div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider opacity-50">
-                    <span>🌙 隔夜恢復觀察報告：</span>
-                    <span class="text-amber-500/90 font-mono tracking-normal">${report.stars}</span>
+            <!-- 最下方：完整的隔夜恢復觀察報告，不再擠在右邊 -->
+            <div class="mt-3 text-xs p-3 rounded-xl bg-stone-50/70 text-stone-600 space-y-1.5 border border-stone-100">
+                <div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-stone-400">
+                    <span>💡 隔夜恢復觀察報告：</span>
+                    <span class="text-amber-500 text-xs tracking-normal font-mono">${report.stars}</span>
                 </div>
-                <p class="text-[11px] leading-relaxed">${report.advice}</p>
+                <p class="text-[11px] leading-relaxed text-stone-500">${report.advice}</p>
             </div>
         `;
         container.appendChild(card);
@@ -498,6 +503,7 @@ function importData() {
     }
     input.click();
 }
+
 // 11. 編輯舊紀錄功能
 function editLog(index) {
     const item = appData[index];
